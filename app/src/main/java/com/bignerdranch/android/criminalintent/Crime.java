@@ -9,7 +9,7 @@ public class Crime {
     private String title;
     private Date date;
     private boolean solved;
-    private int requiresPolice;
+    private boolean requiresPolice;
 
     public Crime(){
         id = UUID.randomUUID();
@@ -44,11 +44,11 @@ public class Crime {
         this.solved = solved;
     }
 
-    public int getRequiresPolice() {
+    public boolean isRequiresPolice() {
         return requiresPolice;
     }
 
-    public void setRequiresPolice(int requiresPolice) {
+    public void setRequiresPolice(boolean requiresPolice) {
         this.requiresPolice = requiresPolice;
     }
 }

@@ -1,8 +1,6 @@
 package com.bignerdranch.android.criminalintent;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -42,7 +40,7 @@ public class CrimeListFragment extends Fragment {
         private TextView dateTextView;
 
         public CrimeHolder(LayoutInflater inflater, ViewGroup parent) {
-            super(inflater.inflate(R.layout.list_item_crime,parent,false));
+            super(inflater.inflate(R.layout.list_item_crime_police,parent,false));
             titleTextView = itemView.findViewById(R.id.crime_title);
             dateTextView = itemView.findViewById(R.id.crime_date);
         }
@@ -84,6 +82,15 @@ public class CrimeListFragment extends Fragment {
         @Override
         public int getItemCount() {
             return crimes.size();
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if(crimes.get(position).isRequiresPolice()){
+                return R.layout.list_item_crime_police;
+            } else {
+                return R.layout.list_item_crime;
+            }
         }
     }
 }
