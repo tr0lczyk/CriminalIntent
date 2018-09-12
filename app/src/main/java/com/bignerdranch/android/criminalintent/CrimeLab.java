@@ -12,7 +12,7 @@ public class CrimeLab {
     private static CrimeLab crimeLab;
     private List<Crime> crimes;
 
-    private CrimeLab get(Context context){
+    public static CrimeLab get(Context context){
         if(crimeLab == null){
             crimeLab = new CrimeLab(context);
         }
@@ -29,7 +29,7 @@ public class CrimeLab {
         }
     }
 
-    private List<Crime> getCrimes(){
+    public List<Crime> getCrimes(){
         return crimes;
     }
 
