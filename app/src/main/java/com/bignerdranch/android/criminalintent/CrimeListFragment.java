@@ -1,19 +1,24 @@
 package com.bignerdranch.android.criminalintent;
 
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 public class CrimeListFragment extends Fragment {
-
+    private static final String TAG = "CriminalListragment";
     private RecyclerView crimeRecyclerView;
     private CrimeAdapter crimeAdapter;
 
@@ -38,23 +43,32 @@ public class CrimeListFragment extends Fragment {
         private Crime crime;
         private TextView titleTextView;
         private TextView dateTextView;
+        private ImageView solvedImageView;
+        private SimpleDateFormat simpleDateFormat;
 
-        public CrimeHolder(LayoutInflater inflater, ViewGroup parent) {
-            super(inflater.inflate(R.layout.list_item_crime_police,parent,false));
+        public CrimeHolder(LayoutInflater inflater, ViewGroup parent, int viewType) {
+            super(inflater.inflate(viewType,parent,false));
             titleTextView = itemView.findViewById(R.id.crime_title);
             dateTextView = itemView.findViewById(R.id.crime_date);
+            solvedImageView = itemView.findViewById(R.id.crime_solved);
         }
 
         public void bind(Crime crime){
             this.crime = crime;
             titleTextView.setText(crime.getTitle());
-            dateTextView.setText(crime.getDate().toString());
+            dateTextView.setText(changeDate(crime.getDate()));
+            solvedImageView.setVisibility(crime.isSolved() ? View.VISIBLE : View.GONE);
         }
 
         @Override
         public void onClick(View view) {
             Toast.makeText(getActivity(),crime.getTitle() + " click ", Toast.LENGTH_SHORT)
                     .show();
+        }
+
+        private String changeDate(Date date){
+            simpleDateFormat = new SimpleDateFormat("EEEE, d MMMM, yyyy");
+            return simpleDateFormat.format(date);
         }
     }
 
@@ -70,7 +84,7 @@ public class CrimeListFragment extends Fragment {
         @Override
         public CrimeHolder onCreateViewHolder( ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-            return new CrimeHolder(layoutInflater,parent);
+            return new CrimeHolder(layoutInflater,parent, viewType);
         }
 
         @Override
