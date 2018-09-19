@@ -1,5 +1,6 @@
 package com.bignerdranch.android.criminalintent;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,11 +18,20 @@ import android.widget.Toast;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class CrimeListFragment extends Fragment {
     private static final String TAG = "CriminalListragment";
     private RecyclerView crimeRecyclerView;
     private CrimeAdapter crimeAdapter;
+
+    private int itemHasChanged;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateUI();
+    }
 
     @Override
     public View onCreateView( LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -35,8 +46,14 @@ public class CrimeListFragment extends Fragment {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         List<Crime> crimes = crimeLab.getCrimes();
 
-        crimeAdapter = new CrimeAdapter(crimes);
-        crimeRecyclerView.setAdapter(crimeAdapter);
+        if(crimeAdapter == null){
+            crimeAdapter = new CrimeAdapter(crimes);
+            crimeRecyclerView.setAdapter(crimeAdapter);
+        } else {
+//            crimeAdapter.notifyDataSetChanged();
+            crimeAdapter.notifyItemChanged(itemHasChanged);
+        }
+
     }
 
     public class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
@@ -51,6 +68,7 @@ public class CrimeListFragment extends Fragment {
             titleTextView = itemView.findViewById(R.id.crime_title);
             dateTextView = itemView.findViewById(R.id.crime_date);
             solvedImageView = itemView.findViewById(R.id.crime_solved);
+            itemView.setOnClickListener(this);
         }
 
         public void bind(Crime crime){
@@ -60,15 +78,16 @@ public class CrimeListFragment extends Fragment {
             solvedImageView.setVisibility(crime.isSolved() ? View.VISIBLE : View.GONE);
         }
 
-        @Override
-        public void onClick(View view) {
-            Toast.makeText(getActivity(),crime.getTitle() + " click ", Toast.LENGTH_SHORT)
-                    .show();
-        }
 
         private String changeDate(Date date){
             simpleDateFormat = new SimpleDateFormat("EEEE, d MMMM, yyyy");
             return simpleDateFormat.format(date);
+        }
+
+        @Override
+        public void onClick(View v) {
+            itemHasChanged = getAdapterPosition();
+            startActivity(CrimeActivity.newIntent(getActivity(),crime.getId()));
         }
     }
 
@@ -80,7 +99,6 @@ public class CrimeListFragment extends Fragment {
             this.crimes = crimes;
         }
 
-
         @Override
         public CrimeHolder onCreateViewHolder( ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
@@ -89,7 +107,7 @@ public class CrimeListFragment extends Fragment {
 
         @Override
         public void onBindViewHolder( CrimeHolder holder, int position) {
-            Crime crime = crimes.get(position);
+            final Crime crime = crimes.get(position);
             holder.bind(crime);
         }
 

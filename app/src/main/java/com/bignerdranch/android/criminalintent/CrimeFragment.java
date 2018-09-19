@@ -1,5 +1,6 @@
 package com.bignerdranch.android.criminalintent;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,9 +16,12 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 
+import java.util.UUID;
+
 public class CrimeFragment extends Fragment {
 
 
+    private static final String ARG_KEY = "arg_key";
     private Crime crime;
     EditText titleField;
     Button dateButton;
@@ -26,13 +30,23 @@ public class CrimeFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        crime = new Crime();
+        UUID crimeId = (UUID) getArguments().getSerializable(ARG_KEY);
+        crime = CrimeLab.get(getActivity()).getCrime(crimeId);
+    }
+
+    public static CrimeFragment newInstance(UUID criminalId){
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_KEY,criminalId);
+        CrimeFragment crimeFragment = new CrimeFragment();
+        crimeFragment.setArguments(args);
+        return crimeFragment;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_crime,container,false);
         titleField = v.findViewById(R.id.crime_title);
+        titleField.setText(crime.getTitle());
         titleField.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -53,6 +67,7 @@ public class CrimeFragment extends Fragment {
         dateButton.setText(crime.getDate().toString());
         dateButton.setEnabled(false);
         solvedCheckBox = v.findViewById(R.id.crime_solved);
+        solvedCheckBox.setChecked(crime.isSolved());
         solvedCheckBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
