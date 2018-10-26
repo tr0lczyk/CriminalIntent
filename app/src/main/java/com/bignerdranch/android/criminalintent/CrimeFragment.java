@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -22,6 +23,7 @@ public class CrimeFragment extends Fragment {
 
 
     private static final String ARG_KEY = "arg_key";
+    private static final String DIALOG_DATE = "DialogDate";
     private Crime crime;
     EditText titleField;
     Button dateButton;
@@ -65,7 +67,14 @@ public class CrimeFragment extends Fragment {
         });
         dateButton = v.findViewById(R.id.crime_date);
         dateButton.setText(crime.getDate().toString());
-        dateButton.setEnabled(false);
+        dateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fragmentManager = getChildFragmentManager();
+                DatePickerFragment dialog = DatePickerFragment.newInstance(crime.getDate());
+                dialog.show(fragmentManager,DIALOG_DATE);
+            }
+        });
         solvedCheckBox = v.findViewById(R.id.crime_solved);
         solvedCheckBox.setChecked(crime.isSolved());
         solvedCheckBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
