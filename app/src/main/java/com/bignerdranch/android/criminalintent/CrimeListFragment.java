@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -57,11 +58,13 @@ public class CrimeListFragment extends Fragment {
     }
 
     public class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+
         private Crime crime;
         private TextView titleTextView;
         private TextView dateTextView;
         private ImageView solvedImageView;
         private SimpleDateFormat simpleDateFormat;
+
 
         public CrimeHolder(LayoutInflater inflater, ViewGroup parent, int viewType) {
             super(inflater.inflate(viewType,parent,false));
@@ -87,7 +90,7 @@ public class CrimeListFragment extends Fragment {
         @Override
         public void onClick(View v) {
             itemHasChanged = getAdapterPosition();
-            startActivity(CrimeActivity.newIntent(getActivity(),crime.getId()));
+            startActivity(CrimePagerActivity.newIntent(getActivity(),crime.getId()));
         }
     }
 
@@ -101,7 +104,7 @@ public class CrimeListFragment extends Fragment {
 
         @Override
         public CrimeHolder onCreateViewHolder( ViewGroup parent, int viewType) {
-            LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
+            LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
             return new CrimeHolder(layoutInflater,parent, viewType);
         }
 
