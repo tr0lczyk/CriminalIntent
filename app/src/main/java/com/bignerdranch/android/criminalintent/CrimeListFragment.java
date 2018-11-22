@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class CrimeListFragment extends Fragment {
-    private static final String TAG = "CriminalListragment";
+    private static final String TAG = "CriminalListFragment";
     private RecyclerView crimeRecyclerView;
     private CrimeAdapter crimeAdapter;
 
@@ -64,6 +64,7 @@ public class CrimeListFragment extends Fragment {
         private TextView dateTextView;
         private ImageView solvedImageView;
         private SimpleDateFormat simpleDateFormat;
+        private TextView timeTextView;
 
 
         public CrimeHolder(LayoutInflater inflater, ViewGroup parent, int viewType) {
@@ -71,6 +72,7 @@ public class CrimeListFragment extends Fragment {
             titleTextView = itemView.findViewById(R.id.crime_title);
             dateTextView = itemView.findViewById(R.id.crime_date);
             solvedImageView = itemView.findViewById(R.id.crime_solved);
+            timeTextView = itemView.findViewById(R.id.crime_time);
             itemView.setOnClickListener(this);
         }
 
@@ -78,12 +80,18 @@ public class CrimeListFragment extends Fragment {
             this.crime = crime;
             titleTextView.setText(crime.getTitle());
             dateTextView.setText(changeDate(crime.getDate()));
+            timeTextView.setText(changeDateToTime(crime.getDate()));
             solvedImageView.setVisibility(crime.isSolved() ? View.VISIBLE : View.GONE);
         }
 
 
         private String changeDate(Date date){
             simpleDateFormat = new SimpleDateFormat("EEEE, d MMMM, yyyy");
+            return simpleDateFormat.format(date);
+        }
+
+        private String changeDateToTime(Date date){
+            simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
             return simpleDateFormat.format(date);
         }
 

@@ -37,4 +37,14 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_solved" />
 
+    <TextView
+        android:id="@+id/crime_time"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Crime time"
+        app:layout_constraintEnd_toEndOf="@+id/crime_date"
+        app:layout_constraintStart_toStartOf="@+id/crime_date"
+        app:layout_constraintTop_toBottomOf="@+id/crime_date" />
+
 </android.support.constraint.ConstraintLayout>
