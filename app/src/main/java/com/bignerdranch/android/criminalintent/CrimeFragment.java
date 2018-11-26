@@ -48,7 +48,6 @@ public class CrimeFragment extends Fragment {
         super.onCreate(savedInstanceState);
         UUID crimeId = (UUID) getArguments().getSerializable(ARG_KEY);
         crime = CrimeLab.get(getActivity()).getCrime(crimeId);
-        setHasOptionsMenu(true);
     }
 
     public static CrimeFragment newInstance(UUID criminalId) {
@@ -143,28 +142,5 @@ public class CrimeFragment extends Fragment {
     private String changeDateToTime(Date date) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
         return simpleDateFormat.format(date);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_crime_delete, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case (R.id.remove_crime):
-                deleteCrime();
-                Log.i("LOG","number of list items is: " + CrimeLab.get(getActivity()).getCrimes().size());
-                getActivity().finish();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    private void deleteCrime() {
-        CrimeLab.get(getActivity()).deleteCrime(crime.getId());
     }
 }
