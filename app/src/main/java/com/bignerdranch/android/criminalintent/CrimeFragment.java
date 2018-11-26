@@ -7,9 +7,14 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -27,7 +32,6 @@ import static com.bignerdranch.android.criminalintent.TimePickerFragment.EXTRA_T
 
 public class CrimeFragment extends Fragment {
 
-
     private static final String ARG_KEY = "arg_key";
     private static final String DIALOG_DATE = "DialogDate";
     private static final String DIALOG_TIME = "DialogTime";
@@ -44,11 +48,12 @@ public class CrimeFragment extends Fragment {
         super.onCreate(savedInstanceState);
         UUID crimeId = (UUID) getArguments().getSerializable(ARG_KEY);
         crime = CrimeLab.get(getActivity()).getCrime(crimeId);
+        setHasOptionsMenu(true);
     }
 
-    public static CrimeFragment newInstance(UUID criminalId){
+    public static CrimeFragment newInstance(UUID criminalId) {
         Bundle args = new Bundle();
-        args.putSerializable(ARG_KEY,criminalId);
+        args.putSerializable(ARG_KEY, criminalId);
         CrimeFragment crimeFragment = new CrimeFragment();
         crimeFragment.setArguments(args);
         return crimeFragment;
@@ -56,7 +61,7 @@ public class CrimeFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_crime,container,false);
+        View v = inflater.inflate(R.layout.fragment_crime, container, false);
         titleField = v.findViewById(R.id.crime_title);
         titleField.setText(crime.getTitle());
         titleField.addTextChangedListener(new TextWatcher() {
@@ -75,6 +80,7 @@ public class CrimeFragment extends Fragment {
 
             }
         });
+
         dateButton = v.findViewById(R.id.crime_date);
         dateButtonSetter(crime.getDate());
         dateButton.setOnClickListener(new View.OnClickListener() {
@@ -82,10 +88,11 @@ public class CrimeFragment extends Fragment {
             public void onClick(View view) {
                 FragmentManager fragmentManager = getFragmentManager();
                 DatePickerFragment dialog = DatePickerFragment.newInstance(crime.getDate());
-                dialog.setTargetFragment(CrimeFragment.this,REQUEST_DATE);
+                dialog.setTargetFragment(CrimeFragment.this, REQUEST_DATE);
                 dialog.show(fragmentManager, DIALOG_DATE);
             }
         });
+
         timeButton = v.findViewById(R.id.timeButton);
         timeButtonSetter(crime.getDate());
         timeButton.setOnClickListener(new View.OnClickListener() {
@@ -93,7 +100,7 @@ public class CrimeFragment extends Fragment {
             public void onClick(View view) {
                 FragmentManager fragmentManager = getFragmentManager();
                 TimePickerFragment fragment = TimePickerFragment.newInstance(crime.getDate());
-                fragment.setTargetFragment(CrimeFragment.this,REQUEST_TIME);
+                fragment.setTargetFragment(CrimeFragment.this, REQUEST_TIME);
                 fragment.show(fragmentManager, DIALOG_TIME);
             }
         });
@@ -110,15 +117,15 @@ public class CrimeFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(resultCode != Activity.RESULT_OK){
+        if (resultCode != Activity.RESULT_OK) {
             return;
         }
-        if(requestCode == REQUEST_DATE){
+        if (requestCode == REQUEST_DATE) {
             Date date = (Date) data.getSerializableExtra(EXTRA_DATE);
             crime.setDate(date);
             dateButtonSetter(crime.getDate());
         }
-        if(requestCode == REQUEST_TIME){
+        if (requestCode == REQUEST_TIME) {
             Date date = (Date) data.getSerializableExtra(EXTRA_TIME);
             crime.setDate(date);
             timeButtonSetter(crime.getDate());
@@ -133,8 +140,31 @@ public class CrimeFragment extends Fragment {
         timeButton.setText(changeDateToTime(date));
     }
 
-    private String changeDateToTime(Date date){
+    private String changeDateToTime(Date date) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
         return simpleDateFormat.format(date);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_crime_delete, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case (R.id.remove_crime):
+                deleteCrime();
+                Log.i("LOG","number of list items is: " + CrimeLab.get(getActivity()).getCrimes().size());
+                getActivity().finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void deleteCrime() {
+        CrimeLab.get(getActivity()).deleteCrime(crime.getId());
     }
 }
