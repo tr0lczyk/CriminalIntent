@@ -11,6 +11,7 @@ public class Crime {
     private Date date;
     private boolean solved;
     private boolean requiresPolice;
+    private String suspect;
 
     public Crime(){
         this.id = UUID.randomUUID();
@@ -24,6 +25,10 @@ public class Crime {
 
     public UUID getId() {
         return id;
+    }
+
+    public String getSuspect() {
+        return suspect;
     }
 
     public String getTitle() {
@@ -56,5 +61,9 @@ public class Crime {
 
     public void setRequiresPolice(boolean requiresPolice) {
         this.requiresPolice = requiresPolice;
+    }
+
+    public void setSuspect(String suspect) {
+        this.suspect = suspect;
     }
 }

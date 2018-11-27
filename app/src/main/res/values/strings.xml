@@ -15,4 +15,13 @@
     </plurals>
 
     <string name="subtitle_format">%1$d crimes</string>
+    <string name="crime_suspect_text">Choose suspect</string>
+    <string name="crime_report_text">Send crime report</string>
+    <string name="crime_report">%1$s! Crime has been reported on %2$s. %3$s, and %4$s</string>
+    <string name="crime_report_solved">Case closed, success!</string>
+    <string name="crime_report_unsolved">Case closed, fail!</string>
+    <string name="crime_report_no_suspect">No suspect</string>
+    <string name="crime_report_suspect">Suspect is %s.</string>
+    <string name="crime_report_subject">CriminalIntent - crime report</string>
+    <string name="send_report">Send with:</string>
 </resources>
