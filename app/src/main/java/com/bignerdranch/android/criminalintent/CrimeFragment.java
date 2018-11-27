@@ -2,7 +2,11 @@ package com.bignerdranch.android.criminalintent;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -28,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
+import static android.provider.ContactsContract.Data.CONTENT_URI;
 import static com.bignerdranch.android.criminalintent.DatePickerFragment.EXTRA_DATE;
 import static com.bignerdranch.android.criminalintent.TimePickerFragment.EXTRA_TIME;
 
@@ -38,11 +43,14 @@ public class CrimeFragment extends Fragment {
     private static final String DIALOG_TIME = "DialogTime";
     public static final int REQUEST_DATE = 0;
     public static final int REQUEST_TIME = 1;
+    public static final int REQUEST_CONTACT = 2;
     private Crime crime;
     EditText titleField;
     Button dateButton;
     CheckBox solvedCheckBox;
     Button timeButton;
+    Button crimeReport;
+    Button suspectButton;
 
     @Override
     public void onPause() {
@@ -119,6 +127,33 @@ public class CrimeFragment extends Fragment {
                 crime.setSolved(isChecked);
             }
         });
+        crimeReport = v.findViewById(R.id.crime_report);
+        crimeReport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TEXT,getCrimeReport());
+                intent.putExtra(Intent.EXTRA_TITLE, getString(R.string.crime_report_subject));
+                intent = Intent.createChooser(intent,getString(R.string.send_report));
+                startActivity(intent);
+            }
+        });
+        final Intent pickContact = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        suspectButton = v.findViewById(R.id.crime_suspect);
+        suspectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivityForResult(pickContact,REQUEST_CONTACT);
+            }
+        });
+        if(crime.getSuspect() != null){
+            suspectButton.setText(crime.getSuspect());
+        }
+        PackageManager manager = getActivity().getPackageManager();
+        if(manager.resolveActivity(pickContact,PackageManager.MATCH_DEFAULT_ONLY) == null){
+            suspectButton.setEnabled(false);
+        }
         return v;
     }
 
@@ -136,6 +171,24 @@ public class CrimeFragment extends Fragment {
             Date date = (Date) data.getSerializableExtra(EXTRA_TIME);
             crime.setDate(date);
             timeButtonSetter(crime.getDate());
+        }
+
+        if(requestCode == REQUEST_CONTACT && data != null){
+            Uri contactUri = data.getData();
+            String[] queryFields = new String[]{ContactsContract.Contacts.DISPLAY_NAME};
+            Cursor c = getActivity().getContentResolver()
+                    .query(contactUri,queryFields,null,null,null);
+            try{
+                if(c.getCount()== 0){
+                    return;
+                }
+                c.moveToFirst();
+                String suspect = c.getString(0);
+                crime.setSuspect(suspect);
+                suspectButton.setText(suspect);
+            } finally {
+                c.close();
+            }
         }
     }
 
