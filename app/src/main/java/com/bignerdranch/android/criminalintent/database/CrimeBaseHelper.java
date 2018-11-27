@@ -4,6 +4,8 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.bignerdranch.android.criminalintent.database.CrimeDbSchema.CrimeTable.Cols;
+
 import static com.bignerdranch.android.criminalintent.database.CrimeDbSchema.CrimeTable;
 import static com.bignerdranch.android.criminalintent.database.CrimeDbSchema.CrimeTable.NAME;
 
@@ -19,10 +21,10 @@ public class CrimeBaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table " + NAME + "(" + " _id integer primary key autoincrement, " +
-                CrimeTable.Cols.UUID + ", " +
-                CrimeTable.Cols.TITLE + ", " +
-                CrimeTable.Cols.DATE + ", " +
-                CrimeTable.Cols.SOLVED + ")"
+                Cols.UUID + ", " +
+                Cols.TITLE + ", " +
+                Cols.DATE + ", " +
+                Cols.SOLVED + ")"
         );
     }
 

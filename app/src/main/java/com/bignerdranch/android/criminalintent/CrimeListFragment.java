@@ -2,30 +2,24 @@ package com.bignerdranch.android.criminalintent;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 public class CrimeListFragment extends Fragment {
     private static final String TAG = "CriminalListFragment";
@@ -33,8 +27,8 @@ public class CrimeListFragment extends Fragment {
     private RecyclerView crimeRecyclerView;
     private CrimeAdapter crimeAdapter;
     private boolean subtitleVisible;
-    private Button crimeDetetcted;
-    private TextView noCrimeDetetced;
+    private Button crimeDetected;
+    private TextView noCrimeDetected;
     private int itemHasChanged;
 
     @Override
@@ -54,8 +48,8 @@ public class CrimeListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_crime_list, container, false);
         crimeRecyclerView = view.findViewById(R.id.crime_recycler_view);
         crimeRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        crimeDetetcted = view.findViewById(R.id.btCrimeDetetcted);
-        noCrimeDetetced = view.findViewById(R.id.no_crimes_warning);
+        crimeDetected = view.findViewById(R.id.btCrimeDetetcted);
+        noCrimeDetected = view.findViewById(R.id.no_crimes_warning);
 
         if(savedInstanceState != null){
             subtitleVisible = savedInstanceState.getBoolean(SAVED_SUBTITLE_VISIBLE);
@@ -68,10 +62,10 @@ public class CrimeListFragment extends Fragment {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         List<Crime> crimes = crimeLab.getCrimes();
         if(!crimes.isEmpty()){
-            crimeDetetcted.setVisibility(View.GONE);
-            noCrimeDetetced.setVisibility(View.GONE);
+            crimeDetected.setVisibility(View.GONE);
+            noCrimeDetected.setVisibility(View.GONE);
         }
-        crimeDetetcted.setOnClickListener(new View.OnClickListener() {
+        crimeDetected.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 openNewCrimeIntent();
@@ -82,8 +76,9 @@ public class CrimeListFragment extends Fragment {
             crimeAdapter = new CrimeAdapter(crimes);
             crimeRecyclerView.setAdapter(crimeAdapter);
         } else {
-//            crimeAdapter.notifyDataSetChanged();
-            crimeAdapter.notifyItemChanged(itemHasChanged);
+            crimeAdapter.setCrimes(crimes);
+            crimeAdapter.notifyDataSetChanged();
+//            crimeAdapter.notifyItemChanged(itemHasChanged);
         }
         updateSubtitle();
     }
@@ -156,6 +151,10 @@ public class CrimeListFragment extends Fragment {
         @Override
         public int getItemCount() {
             return crimes.size();
+        }
+
+        public void setCrimes(List<Crime> crimes){
+            this.crimes = crimes;
         }
 
         @Override
