@@ -12,6 +12,7 @@ public class Crime {
     private boolean solved;
     private boolean requiresPolice;
     private String suspect;
+    private String suspectNumber;
 
     public Crime(){
         this.id = UUID.randomUUID();
@@ -27,8 +28,16 @@ public class Crime {
         return id;
     }
 
+    public String getPhotoFilename(){
+        return "IMG_" + getId().toString() + ".jpg";
+    }
+
     public String getSuspect() {
         return suspect;
+    }
+
+    public String getSuspectNumber() {
+        return suspectNumber;
     }
 
     public String getTitle() {
@@ -65,5 +74,9 @@ public class Crime {
 
     public void setSuspect(String suspect) {
         this.suspect = suspect;
+    }
+
+    public void setSuspectNumber(String suspectNumber) {
+        this.suspectNumber = suspectNumber;
     }
 }

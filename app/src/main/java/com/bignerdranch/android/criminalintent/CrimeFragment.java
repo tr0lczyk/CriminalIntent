@@ -1,20 +1,25 @@
 package com.bignerdranch.android.criminalintent;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.provider.ContactsContract.CommonDataKinds;
+import android.provider.ContactsContract.Contacts;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.ShareCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,13 +31,16 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.Toast;
 
-import java.text.DateFormat;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
-import static android.provider.ContactsContract.Data.CONTENT_URI;
 import static com.bignerdranch.android.criminalintent.DatePickerFragment.EXTRA_DATE;
 import static com.bignerdranch.android.criminalintent.TimePickerFragment.EXTRA_TIME;
 
@@ -44,13 +52,20 @@ public class CrimeFragment extends Fragment {
     public static final int REQUEST_DATE = 0;
     public static final int REQUEST_TIME = 1;
     public static final int REQUEST_CONTACT = 2;
+    public static final int REQUEST_PHOTO = 2;
+    private static final int READ_CONTACTS_PERMISSIONS_REQUEST = 4;
     private Crime crime;
+
     EditText titleField;
     Button dateButton;
     CheckBox solvedCheckBox;
     Button timeButton;
     Button crimeReport;
     Button suspectButton;
+    Button callButton;
+    ImageView photoView;
+    ImageButton photoButton;
+    private File photoFile;
 
     @Override
     public void onPause() {
@@ -63,6 +78,7 @@ public class CrimeFragment extends Fragment {
         super.onCreate(savedInstanceState);
         UUID crimeId = (UUID) getArguments().getSerializable(ARG_KEY);
         crime = CrimeLab.get(getActivity()).getCrime(crimeId);
+        photoFile = CrimeLab.get(getActivity()).getPhotoFile(crime);
         setHasOptionsMenu(true);
     }
 
@@ -75,7 +91,7 @@ public class CrimeFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_crime, container, false);
         titleField = v.findViewById(R.id.crime_title);
         titleField.setText(crime.getTitle());
@@ -128,32 +144,81 @@ public class CrimeFragment extends Fragment {
             }
         });
         crimeReport = v.findViewById(R.id.crime_report);
+
         crimeReport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_TEXT,getCrimeReport());
-                intent.putExtra(Intent.EXTRA_TITLE, getString(R.string.crime_report_subject));
-                intent = Intent.createChooser(intent,getString(R.string.send_report));
-                startActivity(intent);
+                ShareCompat.IntentBuilder.from(getActivity())
+                        .setType("text/plain")
+                        .setSubject(getString(R.string.send_report))
+                        .setText(getString(R.string.send_report))
+                        .setChooserTitle(getString(R.string.send_report))
+                        .startChooser();
+
+//                Intent intent = new Intent(Intent.ACTION_SEND);
+////                intent.setType("text/plain");
+////                intent.putExtra(Intent.EXTRA_TEXT,getCrimeReport());
+////                intent.putExtra(Intent.EXTRA_TITLE, getString(R.string.crime_report_subject));
+////                intent = Intent.createChooser(intent,getString(R.string.send_report));
+////                startActivity(intent);
             }
         });
-        final Intent pickContact = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        final Intent pickContact = new Intent(Intent.ACTION_PICK, Contacts.CONTENT_URI);
         suspectButton = v.findViewById(R.id.crime_suspect);
         suspectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivityForResult(pickContact,REQUEST_CONTACT);
+                startActivityForResult(pickContact, REQUEST_CONTACT);
             }
         });
-        if(crime.getSuspect() != null){
+        if (crime.getSuspect() != null) {
             suspectButton.setText(crime.getSuspect());
         }
         PackageManager manager = getActivity().getPackageManager();
-        if(manager.resolveActivity(pickContact,PackageManager.MATCH_DEFAULT_ONLY) == null){
+        if (manager.resolveActivity(pickContact, PackageManager.MATCH_DEFAULT_ONLY) == null) {
             suspectButton.setEnabled(false);
         }
+        callButton = v.findViewById(R.id.callButton);
+        if (crime.getSuspect() == null) {
+            callButton.setEnabled(false);
+            callButton.setText(getString(R.string.call));
+        } else {
+            callButton.setText(getString(R.string.call, crime.getSuspect()));
+        }
+        callButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (crime.getSuspectNumber() != null) {
+                    Intent intent = new Intent(Intent.ACTION_DIAL,
+                            Uri.parse("tel:" + crime.getSuspectNumber()));
+                    startActivity(intent);
+                }
+            }
+        });
+
+        photoButton = v.findViewById(R.id.crime_camera);
+        final Intent captureImage = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        boolean canTakePhoto = photoFile != null &&
+                captureImage.resolveActivity(manager) != null;
+        photoButton.setEnabled(canTakePhoto);
+        photoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Uri photoUri = FileProvider.getUriForFile(getActivity(),
+                        "com.bignerdranch.android.criminalintent.fileprovider",
+                        photoFile);
+                captureImage.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                List<ResolveInfo> cameraActivities = getActivity()
+                        .getPackageManager()
+                        .queryIntentActivities(captureImage,PackageManager.MATCH_DEFAULT_ONLY);
+                for(ResolveInfo activity : cameraActivities){
+                    getActivity().grantUriPermission(activity.activityInfo.packageName,photoUri,
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                }
+                startActivityForResult(captureImage,REQUEST_PHOTO);
+            }
+        });
+        photoView = v.findViewById(R.id.crime_photo);
         return v;
     }
 
@@ -173,22 +238,56 @@ public class CrimeFragment extends Fragment {
             timeButtonSetter(crime.getDate());
         }
 
-        if(requestCode == REQUEST_CONTACT && data != null){
+        if (requestCode == REQUEST_CONTACT && data != null) {
             Uri contactUri = data.getData();
-            String[] queryFields = new String[]{ContactsContract.Contacts.DISPLAY_NAME};
+            String[] queryFields = new String[]{
+                    Contacts.DISPLAY_NAME,
+                    Contacts._ID};
             Cursor c = getActivity().getContentResolver()
-                    .query(contactUri,queryFields,null,null,null);
-            try{
-                if(c.getCount()== 0){
+                    .query(contactUri, queryFields, null, null, null);
+            String suspectId;
+            try {
+                if (c.getCount() == 0) {
                     return;
                 }
                 c.moveToFirst();
                 String suspect = c.getString(0);
+                suspectId = c.getString(c.getColumnIndex(Contacts._ID));
                 crime.setSuspect(suspect);
+                callButton.setEnabled(true);
+                callButton.setText(getString(R.string.call,crime.getSuspect()));
                 suspectButton.setText(suspect);
             } finally {
                 c.close();
             }
+
+            if(ContextCompat.checkSelfPermission(getActivity(),
+                    Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_DENIED){
+                contactUri = CommonDataKinds.Phone.CONTENT_URI;
+                queryFields = new String[]{CommonDataKinds.Phone.NUMBER};
+
+                c = getActivity().getContentResolver()
+                        .query(contactUri,
+                                queryFields,
+                                CommonDataKinds.Phone._ID + "= ? ",
+                                new String[]{suspectId},
+                                null);
+                try{
+                    if(c.getCount() == 0){
+                        return;
+                    }
+                    c.moveToFirst();
+                    String number = c.getString(c.getColumnIndex(CommonDataKinds.Phone.NUMBER));
+                    crime.setSuspectNumber(number);
+                } finally{
+                    c.close();
+                }
+            } else {
+                ActivityCompat.requestPermissions(getActivity(),
+                        new String[]{Manifest.permission.READ_CONTACTS},
+                        READ_CONTACTS_PERMISSIONS_REQUEST);
+            }
+
         }
     }
 
@@ -223,9 +322,9 @@ public class CrimeFragment extends Fragment {
         }
     }
 
-    public String getCrimeReport(){
+    public String getCrimeReport() {
         String solvedString = null;
-        if(crime.isSolved()){
+        if (crime.isSolved()) {
             solvedString = getString(R.string.crime_report_solved);
         } else {
             solvedString = getString(R.string.crime_report_unsolved);
@@ -234,16 +333,33 @@ public class CrimeFragment extends Fragment {
 //        SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
 //        String dateString = dateFormatter.format(crime.getDate());
         String dateString = android.text.format.DateFormat
-                .format(dateFormat,crime.getDate()).toString();
+                .format(dateFormat, crime.getDate()).toString();
 
         String suspect = crime.getSuspect();
-        if(suspect == null){
+        if (suspect == null) {
             suspect = getString(R.string.crime_report_no_suspect);
         } else {
-            suspect = getString(R.string.crime_report_suspect,suspect);
+            suspect = getString(R.string.crime_report_suspect, suspect);
         }
 
-        String report = getString(R.string.crime_report,crime.getTitle(),dateString,solvedString,suspect);
+        String report = getString(R.string.crime_report, crime.getTitle(), dateString, solvedString, suspect);
         return report;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[],
+                                           int[] grantResults) {
+        // Make sure it's our original READ_CONTACTS request
+        if (requestCode == READ_CONTACTS_PERMISSIONS_REQUEST) {
+            if (grantResults.length == 1 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(getActivity(), "Read Contacts permission granted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getActivity(), "Read Contacts permission denied", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 }
