@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -26,6 +27,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -34,6 +36,8 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.bignerdranch.android.criminalintent.utils.PictureUtils;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -52,7 +56,7 @@ public class CrimeFragment extends Fragment {
     public static final int REQUEST_DATE = 0;
     public static final int REQUEST_TIME = 1;
     public static final int REQUEST_CONTACT = 2;
-    public static final int REQUEST_PHOTO = 2;
+    public static final int REQUEST_PHOTO = 3;
     private static final int READ_CONTACTS_PERMISSIONS_REQUEST = 4;
     private Crime crime;
 
@@ -66,6 +70,8 @@ public class CrimeFragment extends Fragment {
     ImageView photoView;
     ImageButton photoButton;
     private File photoFile;
+    private boolean isTherePhotoPath = false;
+    private int lstKnownHeight = 0;
 
     @Override
     public void onPause() {
@@ -151,7 +157,7 @@ public class CrimeFragment extends Fragment {
                 ShareCompat.IntentBuilder.from(getActivity())
                         .setType("text/plain")
                         .setSubject(getString(R.string.send_report))
-                        .setText(getString(R.string.send_report))
+                        .setText(getCrimeReport())
                         .setChooserTitle(getString(R.string.send_report))
                         .startChooser();
 
@@ -219,6 +225,26 @@ public class CrimeFragment extends Fragment {
             }
         });
         photoView = v.findViewById(R.id.crime_photo);
+        photoView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                updatePhotoView();
+                photoView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
+//        updatePhotoView();
+        photoView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(photoFile == null || !photoFile.exists()) {
+                    Toast.makeText(getActivity(), "Gallery is empty", Toast.LENGTH_SHORT).show();
+                } else {
+                    FragmentManager fragmentManager = getFragmentManager();
+                    CrimeGalleryFragment galleryFragment = CrimeGalleryFragment.newGallery(photoFile.getPath());
+                    galleryFragment.show(fragmentManager,"Gallery");
+                }
+            }
+        });
         return v;
     }
 
@@ -287,7 +313,13 @@ public class CrimeFragment extends Fragment {
                         new String[]{Manifest.permission.READ_CONTACTS},
                         READ_CONTACTS_PERMISSIONS_REQUEST);
             }
-
+        }
+        if(requestCode == REQUEST_PHOTO){
+            Uri photoUri = FileProvider.getUriForFile(getActivity(),
+                    "com.bignerdranch.android.criminalintent.fileprovider",
+                    photoFile);
+            getActivity().revokeUriPermission(photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            updatePhotoView();
         }
     }
 
@@ -344,6 +376,20 @@ public class CrimeFragment extends Fragment {
 
         String report = getString(R.string.crime_report, crime.getTitle(), dateString, solvedString, suspect);
         return report;
+    }
+
+    private void updatePhotoView(){
+        if(photoFile == null || !photoFile.exists()) {
+            photoView.setImageDrawable(null);
+        } else {
+            int width = photoView.getWidth();
+            int height = photoView.getHeight();
+            if(lstKnownHeight != height){
+                Bitmap bitmap = PictureUtils.getScaledBitmap(photoFile.getPath(),width,height);
+                isTherePhotoPath = true;
+                photoView.setImageBitmap(bitmap);
+            }
+        }
     }
 
     @Override
