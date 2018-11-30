@@ -1,5 +1,6 @@
 package com.bignerdranch.android.criminalintent;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -21,6 +22,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import javax.security.auth.callback.Callback;
+
 public class CrimeListFragment extends Fragment {
     private static final String TAG = "CriminalListFragment";
     public static final String SAVED_SUBTITLE_VISIBLE = "subtitle";
@@ -30,11 +33,22 @@ public class CrimeListFragment extends Fragment {
     private Button crimeDetected;
     private TextView noCrimeDetected;
     private int itemHasChanged;
+    private Callbacks callbacks;
+
+    public interface Callbacks {
+        void onCrimeSelected(Crime crime);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        callbacks = (Callbacks) context;
     }
 
     @Override
@@ -58,7 +72,7 @@ public class CrimeListFragment extends Fragment {
         return view;
     }
 
-    private void updateUI() {
+    public void updateUI() {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         List<Crime> crimes = crimeLab.getCrimes();
         if(!crimes.isEmpty()){
@@ -124,7 +138,7 @@ public class CrimeListFragment extends Fragment {
         @Override
         public void onClick(View v) {
             itemHasChanged = getAdapterPosition();
-            startActivity(CrimePagerActivity.newIntent(getActivity(), crime.getId()));
+            callbacks.onCrimeSelected(crime);
         }
     }
 
@@ -219,7 +233,13 @@ public class CrimeListFragment extends Fragment {
     public void openNewCrimeIntent(){
         Crime crime = new Crime();
         CrimeLab.get(getContext()).addCrime(crime);
-        Intent intent = CrimePagerActivity.newIntent(getContext(), crime.getId());
-        startActivity(intent);
+//        updateUI();
+        callbacks.onCrimeSelected(crime);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        callbacks = null;
     }
 }

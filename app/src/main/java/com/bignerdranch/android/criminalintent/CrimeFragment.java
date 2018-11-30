@@ -2,6 +2,7 @@ package com.bignerdranch.android.criminalintent;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -59,6 +60,7 @@ public class CrimeFragment extends Fragment {
     public static final int REQUEST_PHOTO = 3;
     private static final int READ_CONTACTS_PERMISSIONS_REQUEST = 4;
     private Crime crime;
+    private Callbacks callbacks;
 
     EditText titleField;
     Button dateButton;
@@ -72,6 +74,16 @@ public class CrimeFragment extends Fragment {
     private File photoFile;
     private boolean isTherePhotoPath = false;
     private int lstKnownHeight = 0;
+
+    public interface Callbacks{
+        void onCrimeUpdated(Crime crime);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        callbacks = (Callbacks) context;
+    }
 
     @Override
     public void onPause() {
@@ -110,6 +122,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 crime.setTitle(s.toString());
+                updateCrime();
             }
 
             @Override
@@ -147,6 +160,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 crime.setSolved(isChecked);
+                updateCrime();
             }
         });
         crimeReport = v.findViewById(R.id.crime_report);
@@ -256,6 +270,7 @@ public class CrimeFragment extends Fragment {
         if (requestCode == REQUEST_DATE) {
             Date date = (Date) data.getSerializableExtra(EXTRA_DATE);
             crime.setDate(date);
+            updateCrime();
             dateButtonSetter(crime.getDate());
         }
         if (requestCode == REQUEST_TIME) {
@@ -280,6 +295,7 @@ public class CrimeFragment extends Fragment {
                 String suspect = c.getString(0);
                 suspectId = c.getString(c.getColumnIndex(Contacts._ID));
                 crime.setSuspect(suspect);
+                updateCrime();
                 callButton.setEnabled(true);
                 callButton.setText(getString(R.string.call,crime.getSuspect()));
                 suspectButton.setText(suspect);
@@ -319,6 +335,7 @@ public class CrimeFragment extends Fragment {
                     "com.bignerdranch.android.criminalintent.fileprovider",
                     photoFile);
             getActivity().revokeUriPermission(photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            updateCrime();
             updatePhotoView();
         }
     }
@@ -392,6 +409,11 @@ public class CrimeFragment extends Fragment {
         }
     }
 
+    private void updateCrime(){
+        CrimeLab.get(getActivity()).updateCrime(crime);
+        callbacks.onCrimeUpdated(crime);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[],
@@ -407,5 +429,11 @@ public class CrimeFragment extends Fragment {
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        callbacks = null;
     }
 }
