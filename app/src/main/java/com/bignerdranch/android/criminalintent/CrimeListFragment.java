@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -65,17 +66,18 @@ public class CrimeListFragment extends Fragment {
         crimeDetected = view.findViewById(R.id.btCrimeDetetcted);
         noCrimeDetected = view.findViewById(R.id.no_crimes_warning);
 
-        if(savedInstanceState != null){
+        if (savedInstanceState != null) {
             subtitleVisible = savedInstanceState.getBoolean(SAVED_SUBTITLE_VISIBLE);
         }
         updateUI();
         return view;
     }
 
+
     public void updateUI() {
-        CrimeLab crimeLab = CrimeLab.get(getActivity());
-        List<Crime> crimes = crimeLab.getCrimes();
-        if(!crimes.isEmpty()){
+        final CrimeLab crimeLab = CrimeLab.get(getActivity());
+        final List<Crime> crimes = crimeLab.getCrimes();
+        if (!crimes.isEmpty()) {
             crimeDetected.setVisibility(View.GONE);
             noCrimeDetected.setVisibility(View.GONE);
         }
@@ -91,9 +93,35 @@ public class CrimeListFragment extends Fragment {
             crimeRecyclerView.setAdapter(crimeAdapter);
         } else {
             crimeAdapter.setCrimes(crimes);
+//            crimeAdapter.notifyItemRemoved(itemHasChanged);
             crimeAdapter.notifyDataSetChanged();
-//            crimeAdapter.notifyItemChanged(itemHasChanged);
         }
+
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                int pos = viewHolder.getAdapterPosition();
+                crimeAdapter.removeItem(pos);
+                crimeAdapter.removeCrime(pos);
+                crimeAdapter.notifyItemRemoved(pos);
+                if (pos != 0 && (getActivity().findViewById(R.id.detail_fragment_container) != null)) {
+                    callbacks.onCrimeSelected(crimeAdapter.crimes.get(pos - 1));
+                } else if (pos == 0 && !crimeAdapter.crimes.isEmpty() &&
+                        (getActivity().findViewById(R.id.detail_fragment_container) != null)) {
+                    callbacks.onCrimeSelected(crimeAdapter.crimes.get(pos));
+                } else if(pos == 0 && crimeAdapter.crimes.isEmpty() &&
+                        (getActivity().findViewById(R.id.detail_fragment_container) != null)){
+                    crimeDetected.setVisibility(View.VISIBLE);
+                    noCrimeDetected.setVisibility(View.VISIBLE);
+                }
+            }
+        }).attachToRecyclerView(crimeRecyclerView);
         updateSubtitle();
     }
 
@@ -150,6 +178,10 @@ public class CrimeListFragment extends Fragment {
             this.crimes = crimes;
         }
 
+        public void removeCrime(int pos) {
+            crimes.remove(pos);
+        }
+
         @Override
         public CrimeHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
@@ -167,7 +199,7 @@ public class CrimeListFragment extends Fragment {
             return crimes.size();
         }
 
-        public void setCrimes(List<Crime> crimes){
+        public void setCrimes(List<Crime> crimes) {
             this.crimes = crimes;
         }
 
@@ -179,6 +211,11 @@ public class CrimeListFragment extends Fragment {
                 return R.layout.list_item_crime;
             }
         }
+
+        public void removeItem(int position) {
+            Crime crime = crimes.get(position);
+            CrimeLab.get(getActivity()).deleteCrime(crime);
+        }
     }
 
     @Override
@@ -187,7 +224,7 @@ public class CrimeListFragment extends Fragment {
         inflater.inflate(R.menu.fragment_crime_list, menu);
 
         MenuItem subtitleItem = menu.findItem(R.id.show_subtitle);
-        if(subtitleVisible){
+        if (subtitleVisible) {
             subtitleItem.setTitle(R.string.hide_subtitle);
         } else {
             subtitleItem.setTitle(R.string.show_subtitle);
@@ -210,14 +247,14 @@ public class CrimeListFragment extends Fragment {
         }
     }
 
-    private void updateSubtitle(){
+    private void updateSubtitle() {
 
         CrimeLab crimeLab = CrimeLab.get(getContext());
         int crimeSize = crimeLab.getCrimes().size();
         String subtitle = getResources()
-                .getQuantityString(R.plurals.subtitle_plural,crimeSize,crimeSize);
+                .getQuantityString(R.plurals.subtitle_plural, crimeSize, crimeSize);
 
-        if(!subtitleVisible){
+        if (!subtitleVisible) {
             subtitle = null;
         }
         AppCompatActivity activity = (AppCompatActivity) getActivity();
@@ -230,7 +267,7 @@ public class CrimeListFragment extends Fragment {
         outState.putBoolean(SAVED_SUBTITLE_VISIBLE, subtitleVisible);
     }
 
-    public void openNewCrimeIntent(){
+    public void openNewCrimeIntent() {
         Crime crime = new Crime();
         CrimeLab.get(getContext()).addCrime(crime);
 //        updateUI();
