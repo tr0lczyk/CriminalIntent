@@ -201,7 +201,7 @@ public class CrimeFragment extends Fragment {
         callButton = v.findViewById(R.id.callButton);
         if (crime.getSuspect() == null) {
             callButton.setEnabled(false);
-            callButton.setText(getString(R.string.call));
+            callButton.setText(getString(R.string.call, ""));
         } else {
             callButton.setText(getString(R.string.call, crime.getSuspect()));
         }
@@ -297,7 +297,7 @@ public class CrimeFragment extends Fragment {
                 crime.setSuspect(suspect);
                 updateCrime();
                 callButton.setEnabled(true);
-                callButton.setText(getString(R.string.call,crime.getSuspect()));
+                callButton.setText(getString(R.string.call, crime.getSuspect()));
                 suspectButton.setText(suspect);
             } finally {
                 c.close();
@@ -356,7 +356,9 @@ public class CrimeFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_crime_delete, menu);
+        if(getActivity().findViewById(R.id.detail_fragment_container) == null){
+            inflater.inflate(R.menu.fragment_crime_delete, menu);
+        }
     }
 
     @Override

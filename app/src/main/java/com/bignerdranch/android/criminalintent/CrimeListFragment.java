@@ -25,6 +25,8 @@ import java.util.List;
 
 import javax.security.auth.callback.Callback;
 
+import static com.bignerdranch.android.criminalintent.CrimeListActivity.FRAGMENT_TAG;
+
 public class CrimeListFragment extends Fragment {
     private static final String TAG = "CriminalListFragment";
     public static final String SAVED_SUBTITLE_VISIBLE = "subtitle";
@@ -117,6 +119,12 @@ public class CrimeListFragment extends Fragment {
                     callbacks.onCrimeSelected(crimeAdapter.crimes.get(pos));
                 } else if(pos == 0 && crimeAdapter.crimes.isEmpty() &&
                         (getActivity().findViewById(R.id.detail_fragment_container) != null)){
+                    crimeDetected.setVisibility(View.VISIBLE);
+                    noCrimeDetected.setVisibility(View.VISIBLE);
+                    getActivity().getSupportFragmentManager().beginTransaction()
+                            .remove(getActivity().getSupportFragmentManager()
+                                    .findFragmentById(FRAGMENT_TAG)).commit();
+                } else if(pos == 0 && crimeAdapter.crimes.isEmpty()) {
                     crimeDetected.setVisibility(View.VISIBLE);
                     noCrimeDetected.setVisibility(View.VISIBLE);
                 }
@@ -272,6 +280,9 @@ public class CrimeListFragment extends Fragment {
         CrimeLab.get(getContext()).addCrime(crime);
 //        updateUI();
         callbacks.onCrimeSelected(crime);
+        if(getActivity().findViewById(R.id.detail_fragment_container) != null){
+            updateUI();
+        }
     }
 
     @Override

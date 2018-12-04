@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CriminalIntent</string>
+    <string name="crime_title_hint">Wpisz tytuł sprawy:</string>
+    <string name="crime_title_label">TYTUŁ</string>
+    <string name="crime_details_label">Opis:</string>
+    <string name="crime_solved_label">Rozwiązane</string>
+    <string name="date_picker_title">Data zbrodni</string>
+    <string name="new_crime">Nowe przestępstwo</string>
+    <string name="show_subtitle">Pokaż podtytuł</string>
+    <string name="hide_subtitle">Schowaj podtytuł</string>
+
+    <plurals name="subtitle_plural">
+        <item quantity="one">1 przestępstwo</item>
+        <item quantity="few">%d przestępstwa</item>
+        <item quantity="many">%d przestępstw</item>
+    </plurals>
+
+    <string name="subtitle_format">%1$d przestępstwo</string>
+    <string name="crime_suspect_text">Wybierz podejrzanego</string>
+    <string name="crime_report_text">Wyslij raport</string>
+    <string name="crime_report">%1$s! Przestępstwo zgłoszono %2$s. %3$s, i %4$s</string>
+    <string name="crime_report_solved">Sprawa zamknięta, sukces!</string>
+    <string name="crime_report_unsolved">Sprawa zamknięta, porażka!!</string>
+    <string name="crime_report_no_suspect">Brak podejrzanego</string>
+    <string name="crime_report_suspect">Podejrzany to %s.</string>
+    <string name="crime_report_subject">CriminalIntent - raport</string>
+    <string name="send_report">Wysłać z:</string>
+    <string name="call">Zadzwoń %s</string>
+</resources>

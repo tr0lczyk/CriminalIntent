@@ -66,6 +66,7 @@ public class CrimePagerActivity extends AppCompatActivity implements CrimeFragme
                 break;
             }
         }
+
         buttonFirst.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -87,7 +88,6 @@ public class CrimePagerActivity extends AppCompatActivity implements CrimeFragme
                 }
             }
         });
-
     }
 
     @Override

@@ -5,6 +5,8 @@ import android.support.v4.app.Fragment;
 
 public class CrimeListActivity extends SingleFragmentActivity implements CrimeListFragment.Callbacks, CrimeFragment.Callbacks {
 
+    public static final int FRAGMENT_TAG = 999;
+
     @Override
     protected Fragment createFragment() {
         return new CrimeListFragment();
@@ -23,7 +25,7 @@ public class CrimeListActivity extends SingleFragmentActivity implements CrimeLi
         } else {
             Fragment newDetail = CrimeFragment.newInstance(crime.getId());
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.detail_fragment_container, newDetail)
+                    .replace(R.id.detail_fragment_container, newDetail,newDetail.getTag())
                     .commit();
         }
     }
