@@ -400,6 +400,7 @@ public class CrimeFragment extends Fragment {
     private void updatePhotoView(){
         if(photoFile == null || !photoFile.exists()) {
             photoView.setImageDrawable(null);
+            photoView.setContentDescription(getString(R.string.crime_photo_no_image_description));
         } else {
             int width = photoView.getWidth();
             int height = photoView.getHeight();
@@ -407,6 +408,7 @@ public class CrimeFragment extends Fragment {
                 Bitmap bitmap = PictureUtils.getScaledBitmap(photoFile.getPath(),width,height);
                 isTherePhotoPath = true;
                 photoView.setImageBitmap(bitmap);
+                photoView.setContentDescription(getString(R.string.crime_photo_image_description));
             }
         }
     }

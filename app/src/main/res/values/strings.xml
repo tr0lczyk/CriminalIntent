@@ -25,4 +25,7 @@
     <string name="crime_report_subject">CriminalIntent - crime report</string>
     <string name="send_report">Send with:</string>
     <string name="call">call %s</string>
+    <string name="crime_photo_no_image_description">Crimescene photo (empty)</string>
+    <string name="crime_photo_image_description">Crimescene photo (taken)</string>
+    <string name="crime_photo_button_description">Take a picture of crimescene</string>
 </resources>
